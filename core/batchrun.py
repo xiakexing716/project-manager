@@ -33,20 +33,19 @@ def _is_adam(program_name: str) -> bool:
 
 
 def _join(base_dir: str, filename: str, subdir: str = "") -> str:
-    """拼接 base_dir + subdir + filename，自动统一分隔符"""
     if not filename:
         return ""
 
     base = (base_dir or "").rstrip("\\/")
     sub = (subdir or "").strip("\\/")
 
-    # 判断 base 用哪种分隔符：如果含反斜杠就用反斜杠，否则用正斜杠
+    # 判断 base 的主分隔符
     if base:
         sep = "\\" if "\\" in base else "/"
     else:
-        sep = "/"   # 没有 base 时的默认值
+        sep = "/"
 
-    # 把 sub 里的两种分隔符统一成 sep
+    # 把 sub 里的分隔符统一成 sep
     if sub:
         sub = sub.replace("\\", sep).replace("/", sep)
 
