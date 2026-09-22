@@ -32,10 +32,19 @@ def _is_adam(program_name: str) -> bool:
     return bool(_ADAM_RE.fullmatch(name)) and len(name) >= 6
 
 
-def _join(base_dir: str, filename: str) -> str:
+def _join(base_dir: str, filename: str, subdir: str = "") -> str:
     if not filename:
         return ""
     base = (base_dir or "").rstrip("\\/")
+    sub = (subdir or "").strip("\\/")
+
+    if sub:
+        if base:
+            sep = "\\" if ("\\" in base and "/" not in base) else "/"
+            base = f"{base}{sep}{sub}"
+        else:
+            base = sub
+
     if not base:
         return filename
     sep = "\\" if ("\\" in base and "/" not in base) else "/"
