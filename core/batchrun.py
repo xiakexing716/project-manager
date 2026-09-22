@@ -10,6 +10,13 @@ import pandas as pd
 from core.aggregator import get_all_datasets, get_all_tfls
 from core.db import get_project_paths
 
+# 默认子路径（页面不传时使用）
+DEFAULT_SUBDIRS = {
+    "sdtm": "02_extraction",
+    "adam": "08_macro/adam",
+    "tfl":  "09_txt",
+}
+
 _SDTM_RE = re.compile(r"^[a-z]{2}\.sas$", re.IGNORECASE)
 _ADAM_RE = re.compile(r"^ad[a-z0-9]+\.sas$", re.IGNORECASE)
 
@@ -109,7 +116,17 @@ def filter_tfls(df, programmer=None, qc_programmer=None, required_list=None,
 # ------------------------------------------------------------
 # 生成
 # ------------------------------------------------------------
-def build_batchrun_lines(df_datasets, df_tfls, project_paths, fallback_dir=""):
+def build_batchrun_lines(df_datasets, df_tfls, project_paths,
+                         fallback_dir="", subdirs=None):
+    """
+    返回 (lines, stats, warnings)
+    subdirs: {"sdtm": "...", "adam": "...", "tfl": "..."}
+    """
+    subdirs = subdirs or DEFAULT_SUBDIRS
+    sdtm_sub = subdirs.get("sdtm", "")
+    adam_sub = subdirs.get("adam", "")
+    tfl_sub = subdirs.get("tfl", "")
+
     lines: List[str] = []
     warnings: List[str] = []
     n_sdtm = n_adam = n_tfl = 0
@@ -124,6 +141,7 @@ def build_batchrun_lines(df_datasets, df_tfls, project_paths, fallback_dir=""):
         warnings.append(f"项目 [{project_name}] 未配置项目位置，且未提供统一路径，输出仅文件名。")
         return ""
 
+    # ---- Datasets (SDTM / ADaM) ----
     if df_datasets is not None and not df_datasets.empty:
         for _, row in df_datasets.iterrows():
             name = (row.get("program_name") or "").strip()
@@ -131,13 +149,16 @@ def build_batchrun_lines(df_datasets, df_tfls, project_paths, fallback_dir=""):
                 continue
             if _is_sdtm(name):
                 n_sdtm += 1
+                subdir = sdtm_sub
             elif _is_adam(name):
                 n_adam += 1
+                subdir = adam_sub
             else:
                 continue
             base = _path_for(row.get("project_id"), row.get("project_name", ""))
-            lines.append(_join(base, name))
+            lines.append(_join(base, name, subdir))
 
+    # ---- TFLs ----
     if df_tfls is not None and not df_tfls.empty:
         for _, row in df_tfls.iterrows():
             txt = (row.get("txtname") or "").strip()
@@ -145,12 +166,11 @@ def build_batchrun_lines(df_datasets, df_tfls, project_paths, fallback_dir=""):
                 continue
             n_tfl += 1
             base = _path_for(row.get("project_id"), row.get("project_name", ""))
-            lines.append(_join(base, txt))
+            lines.append(_join(base, txt, tfl_sub))
 
     warnings = list(dict.fromkeys(warnings))
     stats = {"sdtm": n_sdtm, "adam": n_adam, "tfl": n_tfl, "total": len(lines)}
     return lines, stats, warnings
-
 
 def build_batchrun_text(lines: List[str]) -> str:
     if not lines:
@@ -170,6 +190,7 @@ def generate_batchrun(
     required_list: Optional[List[str]] = None,
     status_list: Optional[List[str]] = None,
     qc_status_list: Optional[List[str]] = None,
+    subdirs: Optional[dict] = None,
 ) -> Tuple[str, dict, pd.DataFrame, pd.DataFrame, List[str]]:
     """
     返回 (text, stats, df_ds_used, df_tfl_used, warnings)

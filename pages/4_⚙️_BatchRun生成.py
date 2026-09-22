@@ -83,6 +83,15 @@ fallback_dir = st.text_input(
     help="只对「未配置项目位置」的项目生效。留空则这些项目只输出文件名。",
 )
 
+st.markdown("### 📁 子路径设置（相对项目根目录，可留空）")
+c1, c2, c3 = st.columns(3)
+with c1:
+    sdtm_subdir = st.text_input("SDTM 子路径", value="02_extraction")
+with c2:
+    adam_subdir = st.text_input("ADaM 子路径", value="08_macro/adam")
+with c3:
+    tfl_subdir = st.text_input("TFL 子路径", value="09_txt")
+
 st.subheader("2️⃣ 筛选条件")
 col1, col2, col3 = st.columns(3)
 with col1:
@@ -145,6 +154,11 @@ text, stats, df_ds_used, df_tfl_used, warnings = generate_batchrun(
     required_list=required_choice or None,
     status_list=status_choice or None,
     qc_status_list=qc_status_choice or None,
+   subdirs={
+        "sdtm": sdtm_subdir.strip(),
+        "adam": adam_subdir.strip(),
+        "tfl":  tfl_subdir.strip(),
+    },
 )
 
 for w in warnings:
