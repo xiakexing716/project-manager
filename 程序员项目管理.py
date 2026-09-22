@@ -2,6 +2,13 @@
 import streamlit as st
 from supabase import create_client
 
+st.set_page_config(
+    page_title="程序员项目管理系统",
+    page_icon="📊",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
 url = st.secrets["SUPABASE_URL"]
 key = st.secrets["SUPABASE_KEY"]
 

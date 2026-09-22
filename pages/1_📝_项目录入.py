@@ -5,7 +5,7 @@ import pandas as pd
 import plotly.express as px
 
 
-st.set_page_config(page_title="页面名", page_icon="🔧", layout="wide")
+st.set_page_config(page_title="项目录入", page_icon="🔧", layout="wide")
 
 # ===== 登录检查 =====
 if "user" not in st.session_state:
