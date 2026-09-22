@@ -40,7 +40,13 @@ def create_project(project_name: str,
     client = get_client()
 
     # 先检查重名
-    existing = client.table("projects").select("id").eq("project_name", project_name.strip()).execute()
+    existing = (
+        client.table("projects")
+        .select("id")
+        .eq("project_name", project_name.strip())
+        .eq("user_id", st.session_state["user"].id)
+        .execute()
+    )
     if existing.data:
         raise ValueError(f"项目名已存在：{project_name}")
 
