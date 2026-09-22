@@ -183,6 +183,9 @@ def build_batchrun_lines(df_datasets, df_tfls, project_paths,
             if not txt:
                 continue
             n_tfl += 1
+            # 默认补 .txt 后缀（如果还没带后缀）
+            if not txt.lower().endswith(".txt"):
+                txt = f"{txt}.txt"
             base = _path_for(row.get("project_id"), row.get("project_name", ""))
             lines.append(_join(base, txt, tfl_sub))
 
